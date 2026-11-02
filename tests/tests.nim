@@ -3319,7 +3319,7 @@ entry:
 
     LLVMSetModuleDataLayout(m, td)
     let moduleTd = LLVMGetModuleDataLayout(m)
-    defer: LLVMDisposeTargetData(moduleTd)
+    # LLVMGetModuleDataLayout returns a borrowed reference owned by the module.
     check LLVMPointerSize(moduleTd) == pointerSize
 
     let global = LLVMAddGlobal(m, i64t, "layout_global")
