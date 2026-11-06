@@ -3307,12 +3307,31 @@ entry:
     check LLVMSizeOfTypeInBits(td, i32t) == 32
     check LLVMStoreSizeOfType(td, i32t) == 4
     check LLVMABIAlignmentOfType(td, i64t) == 8
+    check LLVMCallFrameAlignmentOfType(td, i64t) > 0
+    check LLVMPreferredAlignmentOfType(td, i64t) > 0
+    check LLVMByteOrder(td) in {LLVMBigEndian, LLVMLittleEndian}
+
+    let pointerSize = LLVMPointerSize(td)
+    check pointerSize > 0
+    check LLVMPointerSizeForAS(td, 0) == pointerSize
+    check LLVMSizeOfTypeInBits(td, LLVMIntPtrTypeInContext(ctx, td)) == uint64(pointerSize) * 8
+    check LLVMSizeOfTypeInBits(td, LLVMIntPtrTypeForASInContext(ctx, td, 0)) == uint64(pointerSize) * 8
+
+    LLVMSetModuleDataLayout(m, td)
+    let moduleTd = LLVMGetModuleDataLayout(m)
+    # LLVMGetModuleDataLayout returns a borrowed reference owned by the module.
+    check LLVMPointerSize(moduleTd) == pointerSize
+
+    let global = LLVMAddGlobal(m, i64t, "layout_global")
+    check LLVMPreferredAlignmentOfGlobal(td, global) > 0
 
     var elems = [i32t, i64t]
     let st = LLVMStructTypeInContext(ctx, addr elems[0], 2, LLVMFalse)
     check LLVMABISizeOfType(td, st) == 16
     check LLVMOffsetOfElement(td, st, 0) == 0
     check LLVMOffsetOfElement(td, st, 1) == 8
+    check LLVMElementAtOffset(td, st, 0) == 0
+    check LLVMElementAtOffset(td, st, 8) == 1
 
     let sRep = LLVMCopyStringRepOfTargetData(td)
     check not sRep.isNil

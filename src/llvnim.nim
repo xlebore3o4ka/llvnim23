@@ -1175,6 +1175,9 @@ proc LLVMInstructionGetAllMetadataOtherThanDebugLoc*(Inst: LLVMValueRef; MDs: va
 
 type
   LLVMTargetDataRef* = distinct pointer
+  LLVMByteOrdering* {.size: sizeof(cint).} = enum
+    LLVMBigEndian = 0
+    LLVMLittleEndian = 1
 
 definePointerOps(LLVMTargetDataRef)
 
@@ -1182,11 +1185,22 @@ proc LLVMCreateTargetData*(StringRep: cstring): LLVMTargetDataRef {.llvmImport.}
 proc LLVMCreateTargetDataLayout*(T: LLVMTargetMachineRef): LLVMTargetDataRef {.llvmImport.}
 proc LLVMDisposeTargetData*(TD: LLVMTargetDataRef) {.llvmImport.}
 proc LLVMCopyStringRepOfTargetData*(TD: LLVMTargetDataRef): cstring {.llvmImport.}
+proc LLVMGetModuleDataLayout*(M: LLVMModuleRef): LLVMTargetDataRef {.llvmImport.}
+proc LLVMSetModuleDataLayout*(M: LLVMModuleRef; DL: LLVMTargetDataRef) {.llvmImport.}
+proc LLVMByteOrder*(TD: LLVMTargetDataRef): LLVMByteOrdering {.llvmImport.}
+proc LLVMPointerSize*(TD: LLVMTargetDataRef): cuint {.llvmImport.}
+proc LLVMPointerSizeForAS*(TD: LLVMTargetDataRef; AS: cuint): cuint {.llvmImport.}
+proc LLVMIntPtrTypeInContext*(C: LLVMContextRef; TD: LLVMTargetDataRef): LLVMTypeRef {.llvmImport.}
+proc LLVMIntPtrTypeForASInContext*(C: LLVMContextRef; TD: LLVMTargetDataRef; AS: cuint): LLVMTypeRef {.llvmImport.}
 
 proc LLVMSizeOfTypeInBits*(TD: LLVMTargetDataRef; Ty: LLVMTypeRef): uint64 {.llvmImport.}
 proc LLVMStoreSizeOfType*(TD: LLVMTargetDataRef; Ty: LLVMTypeRef): uint64 {.llvmImport.}
 proc LLVMABISizeOfType*(TD: LLVMTargetDataRef; Ty: LLVMTypeRef): uint64 {.llvmImport.}
 proc LLVMABIAlignmentOfType*(TD: LLVMTargetDataRef; Ty: LLVMTypeRef): cuint {.llvmImport.}
+proc LLVMCallFrameAlignmentOfType*(TD: LLVMTargetDataRef; Ty: LLVMTypeRef): cuint {.llvmImport.}
+proc LLVMPreferredAlignmentOfType*(TD: LLVMTargetDataRef; Ty: LLVMTypeRef): cuint {.llvmImport.}
+proc LLVMPreferredAlignmentOfGlobal*(TD: LLVMTargetDataRef; GlobalVar: LLVMValueRef): cuint {.llvmImport.}
+proc LLVMElementAtOffset*(TD: LLVMTargetDataRef; StructTy: LLVMTypeRef; Offset: uint64): cuint {.llvmImport.}
 proc LLVMOffsetOfElement*(TD: LLVMTargetDataRef; StructTy: LLVMTypeRef; Element: cuint): uint64 {.llvmImport.}
 
 proc LLVMOrcLLJITGetDataLayoutStr*(J: LLVMOrcLLJITRef): cstring {.llvmImport.}
