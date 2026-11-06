@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Nim](https://img.shields.io/badge/Nim-%E2%89%A52.2.10-orange.svg)](https://nim-lang.org/)
 [![LLVM](https://img.shields.io/badge/LLVM-23.1.x-6b4fbb.svg)](https://llvm.org/)
-[![Status](https://img.shields.io/badge/status-v0.8.0-brightgreen.svg)](https://github.com/xlebore3o4ka/llvnim23/releases/tag/v0.8.0)
+[![Status](https://img.shields.io/badge/status-v1.0.0-brightgreen.svg)](https://github.com/xlebore3o4ka/llvnim23/releases/tag/v1.0.0)
 
 Hand-written Nim bindings for the LLVM-C API, version 23.1.x. You call LLVM directly from Nim to build IR, run the verifier, optimize with the new PassBuilder, and execute code via LLJIT or MCJIT.
 
@@ -209,14 +209,16 @@ See the `examples/` directory for fully working scripts:
 
 ## What it covers
 
-- **Core IR**: Types (int, float, void, pointer, structs, arrays, vectors), Builder (arithmetic, casts, control flow, aggregates), Constants.
-- **Advanced Features**: PassBuilder (`LLVMRunPasses`), TargetMachine (AOT compilation to `.o` and `.s`), MCJIT, LLJIT, Exceptions (`landingpad`), Atomics (`atomicrmw`, `cmpxchg`).
+- **Core IR**: Types (int, float, void, pointer, structs, arrays, vectors), Builder (arithmetic, casts, control flow, aggregates), Constants, Metadata, function/global/basic-block iterators.
+- **Advanced Features**: PassBuilder (`LLVMRunPasses`), TargetMachine (AOT compilation to `.o` and `.s`), TargetData (layout, sizes, alignments), MCJIT, LLJIT (with a C++ shim for JITDylibs and dynamic libraries), Exceptions (`landingpad`), Atomics (`atomicrmw`, `cmpxchg`).
 - **DebugInfo (DI)**: Complete DWARF generation support, including `DICompileUnit`, `DISubprogram`, local/global variables, function parameters, structs, pointers, arrays, and lexical blocks.
-- **Utilities**: `IRReader` (parsing `.ll`), `BitReader`/`BitWriter` (reading/writing `.bc`), `Linker` (merging modules), `Object.h` (reading symbols/sections from `.o` files), Comdat.
+- **Utilities**: `IRReader` (parsing `.ll`), `BitReader`/`BitWriter` (reading/writing `.bc`), `Linker` (merging modules), `Object.h` (reading symbols/sections from `.o` files), `Disassembler`, Comdat.
+
+The binding deliberately focuses on the API surface a compiler backend and JIT need in practice. The best way to check coverage is to look inside `src/llvnim.nim`: it is one readable file with plain declarations. Anything not there yet is easy to add by following the same pattern.
 
 ## Gotchas
 
-- Version is fixed to LLVM 23.1.x. Different major.minor fails `checkVersion`. Future LLVM releases (24+) are planned to be supported.
+- Version is fixed to LLVM 23.1.x. Different major.minor fails `checkVersion`. Future LLVM releases (24+) are planned to be supported. The old versions are not.
 - `LLVMDisposeExecutionEngine` frees the module. Do not dispose it separately. `addModule` in LLJIT transfers ownership; on error it does not. Use `addModuleSafe` / `createJITSafe` to prevent double-free.
 - Free strings from `LLVMPrint*ToString` with `LLVMDisposeMessage`.
 - A context is not thread-safe. Use one context per thread.
@@ -227,9 +229,9 @@ See the `examples/` directory for fully working scripts:
 
 ## Limitations
 
-- Not full LLVM-C coverage. Object loaders, most ORC layers beyond LLJIT, and some advanced analysis APIs are not bound.
+- Not an exhaustive binding of the whole LLVM-C API. The focus is on the parts you need for a compiler backend and JIT, so the binding stays lean and easy to maintain.
 - Dynamic loading via `dynlib` is the default; opt-in static linking is available with `-d:staticLlvm`.
-- The AOT emit tests write to `/tmp` and assume a Unix-like system.
+- Tests (AOT emit, bitcode, Object.h) write to `/tmp` and assume a Unix-like system.
 - `LLJIT::getTargetMachine()` is not exposed: it does not exist in LLVM 23's public `LLJIT` API. Use `targetDataFromJit` (DataLayout-based) instead.  
 
 ## License

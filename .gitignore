@@ -123,3 +123,4 @@ bin/
 all_files.txt
 gitchanges.txt
 vgcore.*
+examples/nimoscope/coderunner.nim
